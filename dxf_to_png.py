@@ -6,6 +6,7 @@ DXF -> PNG Batch Converter  (V1.1)
 给定根目录，自动查找所有 */dxf/*.dxf，在 dxf 同级生成 images/ 并转换。
 
 用法:  修改 ROOT_DIR 后运行:  python dxf_to_png.py
+         或直接运行（自动使用当前目录）:  python dxf_to_png.py
 依赖:   pip install ezdxf matplotlib Pillow
 """
 
@@ -17,7 +18,8 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 配置
 # ---------------------------------------------------------------------------
-ROOT_DIR = Path(r"C:\Users\Ran-xin\Desktop\kuak\new")  # <- 修改为你的目标目录
+ROOT_DIR = Path(__file__).resolve().parent  # 默认当前目录，可改为固定路径
+# ROOT_DIR = Path(r"C:\Users\Ran-xin\Desktop\kuak\new")  # 示例：固定目录
 OUTPUT_DPI = 600               # 输出分辨率
 MAX_FIGURE_INCHES = 20         # 最大画布尺寸（英寸）
 MAX_PIXELS = 12000             # 单边最大像素，超出自动降 DPI
