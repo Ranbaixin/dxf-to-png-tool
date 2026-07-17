@@ -132,6 +132,28 @@ def _remap_colors(entity):
             pass
 
 
+def apply_font_map(doc, font_map):
+    """
+    将 font_map 中的映射实际写入 DXF 的 STYLE 表。
+    ezdxf 渲染时会用 STYLE 定义的字体文件，不会自动用 font_map。
+    所以必须修改 DXF 文档对象中的样式字体文件路径。
+    """
+    available = {f.name: f for f in fm.fontManager.ttflist}
+
+    for style in doc.styles:
+        name = style.dxf.name
+        if name in font_map:
+            target = font_map[name]
+            if target in available:
+                style.dxf.font = available[target].fname
+            elif name == "Standard" and "Arial" in available:
+                style.dxf.font = available["Arial"].fname
+
+
+# ===================================================================
+# 目录扫描
+# ===================================================================
+
 def fix_document_colors(doc):
     """对文档所有块和模型空间的实体做颜色修正。"""
     for blk in doc.blocks:
@@ -157,6 +179,7 @@ def find_project_dirs(root: Path):
         dxf_dir = item / "dxf"
         if dxf_dir.exists() and dxf_dir.is_dir():
             img_dir = item / "images"
+            projects.append((item.name, dxf_dir, img_dir))
             projects.append((item.name, dxf_dir, img_dir))
     return projects
 
@@ -188,10 +211,11 @@ def convert_dxf_to_png(dxf_path: Path, png_path: Path, font_map: dict):
 
     # 空图纸检测
     msp = doc.modelspace()
-    if len(msp) == 0 and len(doc.blocks) <= 2:  # 只有默认块
+    if len(msp) == 0 and len(doc.blocks) <= 2:
         raise ValueError("DXF 无实体内容（空图纸）")
 
-    # 颜色修正
+    # 字体映射 & 颜色修正
+    apply_font_map(doc, font_map)
     fix_document_colors(doc)
 
     config = Configuration(
