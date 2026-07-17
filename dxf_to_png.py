@@ -17,7 +17,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 配置
 # ---------------------------------------------------------------------------
-ROOT_DIR = Path(r"C:\Users\Ran-xin\Desktop\kuak\new")  # 根目录，按需修改
+ROOT_DIR = Path(r"C:\Users\Ran-xin\Desktop\kuak\new")  # <- 修改为你的目标目录
 OUTPUT_DPI = 600               # 输出分辨率
 MAX_FIGURE_INCHES = 20         # 最大画布尺寸（英寸）
 MAX_PIXELS = 12000             # 单边最大像素，超出自动降 DPI
