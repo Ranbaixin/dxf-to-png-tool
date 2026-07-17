@@ -161,9 +161,16 @@ dxf-to-png-tool/
 ├── dxf_to_png.py       # 主转换脚本
 ├── README.md           # 本文档
 ├── requirements.txt    # Python 依赖
-└── .gitignore
+├── .gitignore
+└── .gitattributes
 ```
+
+仓库地址：https://github.com/Ranbaixin/dxf-to-png-tool
 
 ## License
 
 MIT
+
+---
+
+**仓库地址**: [https://github.com/Ranbaixin/dxf-to-png-tool](https://github.com/Ranbaixin/dxf-to-png-tool)
