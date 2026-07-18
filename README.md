@@ -64,7 +64,27 @@ pip install -r requirements.txt
 └── ...
 ```
 
-### 布局 B：扁平结构 / Flat Directory
+### 布局 B：项目目录直接存放 DXF / Project-level DXF
+
+每个项目目录下直接有 .dxf 文件（没有 dxf 子目录），脚本在**同一目录**下生成 `images/`。
+
+```
+图纸根目录/
+├── dxf_to_png.py            ← 放这里
+├── 项目A/
+│   ├── 零件1.dxf            ← DXF 输入
+│   ├── 零件2.dxf
+│   └── images/              ← PNG 输出（自动创建）
+│       ├── 零件1.png
+│       └── 零件2.png
+├── 项目B/
+│   ├── 零件3.dxf
+│   └── images/
+│       └── 零件3.png
+└── ...
+```
+
+### 布局 C：扁平结构 / Flat Directory
 
 所有 DXF 直接放在根目录，`images/` 也在根目录下。
 
@@ -80,7 +100,7 @@ pip install -r requirements.txt
     └── 零件3.png
 ```
 
-脚本运行时会**自动检测**目录结构，无需手动选择模式。
+脚本运行时会**自动检测**目录结构，三种布局可**混合存在**，无需手动选择模式。
 
 ### 作为 Python 库使用 / Use as a Library
 
