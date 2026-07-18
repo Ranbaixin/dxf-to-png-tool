@@ -1,12 +1,16 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 """
-DXF -> PNG Batch Converter  (V1.1)
+DXF -> PNG Batch Converter  (V1.2)
 ===================================
-给定根目录，自动查找所有 */dxf/*.dxf，在 dxf 同级生成 images/ 并转换。
+给定根目录，自动查找所有 DXF 文件，在同级生成 images/ 并转换。
+
+支持三种目录布局：
+  A) 项目/dxf/*.dxf  →  项目/images/*.png  （dxf 子目录）
+  B) 项目/*.dxf      →  项目/images/*.png  （项目目录下直接有 dxf）
+  C) *.dxf           →  images/*.png       （扁平目录）
 
 用法:  修改 ROOT_DIR 后运行:  python dxf_to_png.py
-         或直接运行（自动使用当前目录）:  python dxf_to_png.py
+       或直接运行（自动使用当前目录）:  python dxf_to_png.py
 依赖:   pip install ezdxf matplotlib Pillow
 """
 
@@ -18,8 +22,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # 配置
 # ---------------------------------------------------------------------------
-ROOT_DIR = Path(__file__).resolve().parent  # 默认当前目录，可改为固定路径
-# ROOT_DIR = Path(r"C:\Users\Ran-xin\Desktop\kuak\new")  # 示例：固定目录
+ROOT_DIR = Path(__file__).resolve().parent  # 可改为固定路径如 Path(r"D:\dxf")
 OUTPUT_DPI = 600               # 输出分辨率
 MAX_FIGURE_INCHES = 20         # 最大画布尺寸（英寸）
 MAX_PIXELS = 12000             # 单边最大像素，超出自动降 DPI
@@ -171,18 +174,40 @@ def fix_document_colors(doc):
 
 def find_project_dirs(root: Path):
     """
-    扫描根目录，返回 [(项目名, dxf目录, images目录), ...]。
-    跳过无 dxf/ 子目录的项目。
+    扫描根目录，返回 [(项目名, dxf源目录, images输出目录), ...]。
+    支持混合布局（同时存在 A 和 B）：
+      A) 项目/dxf/*.dxf  →  images 在项目/下
+      B) 项目/*.dxf      →  images 在项目/下
+      C) *.dxf           →  images 在根目录/下  （无子项目时）
     """
     projects = []
+    seen = set()
+
     for item in sorted(root.iterdir()):
         if not item.is_dir():
             continue
-        dxf_dir = item / "dxf"
-        if dxf_dir.exists() and dxf_dir.is_dir():
-            img_dir = item / "images"
-            projects.append((item.name, dxf_dir, img_dir))
-            projects.append((item.name, dxf_dir, img_dir))
+        # 跳过 images、脚本自带目录
+        if item.name in ("images", "__pycache__", ".git"):
+            continue
+
+        dxf_sub = item / "dxf"
+        if dxf_sub.exists() and dxf_sub.is_dir():
+            projects.append((item.name, dxf_sub, item / "images"))
+            seen.add(item.name)
+
+    # 布局 B：没有 dxf/ 子目录但有 .dxf 直接文件的目录（且未被 A 覆盖）
+    for item in sorted(root.iterdir()):
+        if not item.is_dir():
+            continue
+        if item.name in seen or item.name in ("images", "__pycache__", ".git"):
+            continue
+        if list(item.glob("*.dxf")):
+            projects.append((item.name, item, item / "images"))
+
+    # 布局 C：如果上面都没找到，检查根目录
+    if not projects and list(root.glob("*.dxf")):
+        projects.append((root.name, root, root / "images"))
+
     return projects
 
 
@@ -303,8 +328,11 @@ def batch_convert(root: Path):
     # 扫描项目
     projects = find_project_dirs(root)
     if not projects:
-        log.error("未找到任何包含 dxf/ 目录的项目文件夹！")
-        log.error("请确保目录结构为: 项目名/dxf/*.dxf")
+        log.error("未找到任何 DXF 文件！")
+        log.error("请确保以下任一目录结构存在：")
+        log.error("  A) 项目名/dxf/*.dxf")
+        log.error("  B) 项目名/*.dxf")
+        log.error("  C) *.dxf（脚本同目录）")
         return
 
     log.info(f"找到 {len(projects)} 个项目文件夹:\n")
